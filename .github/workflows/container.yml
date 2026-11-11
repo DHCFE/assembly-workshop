@@ -1,0 +1,17 @@
+name: Blender service container
+on:
+  push:
+    branches: [main]
+    paths: [Dockerfile, compose.yaml, 'runtime/**', 'examples/**', 'web/**', 'tests/**', 'scripts/**', 'package*.json', '.github/workflows/container.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --tag assembly-workshop:check .
+      - run: docker run --rm --entrypoint blender assembly-workshop:check --version
+      - run: docker run --rm --network none --env WORKSHOP_TEST_BLENDER=1 --volume "$PWD/tests:/app/tests:ro" assembly-workshop:check python3 -m unittest discover -s tests -p 'test_*.py'
