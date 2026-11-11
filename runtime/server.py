@@ -222,7 +222,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--bind', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=8765)
-    parser.add_argument('--origin', help='Public origin including scheme and port for reverse proxy deployments')
+    parser.add_argument('--origin', default=os.getenv('WORKSHOP_ORIGIN'), help='Public origin including scheme and port for reverse proxy deployments')
     parser.add_argument('--data-dir', type=Path, default=ROOT/'data')
     parser.add_argument('--provider', choices=NAMES, default=os.getenv('WORKSHOP_PROVIDER','off'))
     args=parser.parse_args()

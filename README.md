@@ -17,7 +17,7 @@ Easy 将相邻工序组合，Medium 减少重复动作，Hard 按原始工序逐
 <a id="self-host"></a>
 ## 自部署
 
-需要 Node.js 20+ 和 Python 3.10+。安装 Blender 5.2 LTS 可启用照片生成与 Blender 导出。运行时从 `BLENDER_BIN`、系统路径或 macOS 的标准安装位置寻找 Blender。Windows 可用 PowerShell 和 `py -3` 替代下面的 `python3`。
+[下载自部署包](https://github.com/DHCFE/assembly-workshop/releases/latest)。解压后用 Python 3.10+ 运行 `python3 runtime/server.py`，打开终端打印的网址。发布包已构建网页。用源代码开发时需要 Node.js 20+。安装 Blender 5.2 LTS 可启用照片生成与 Blender 导出。运行时从 `BLENDER_BIN`、系统路径或 macOS 的标准安装位置寻找 Blender。Windows 可用 PowerShell 和 `py -3` 替代下面的 `python3`。
 
 ```sh
 npm ci
@@ -43,11 +43,11 @@ python3 runtime/server.py
 
 ### 容器
 
-将 `.env.example` 复制为 `.env`，按需填兼容 API 配置，再运行 `docker compose up --build`。默认 `WORKSHOP_PROVIDER=off`，可试玩和导出，填好生成服务后可上传照片。容器安装 Ubuntu 发行版提供的 Blender。容器中默认走兼容 API，本机登录过的 Codex 或 Claude Code 可使用上述原生启动方式。
+将 `.env.example` 复制为 `.env`，按需填兼容 API 配置，再运行 `docker compose up --build`。默认 `WORKSHOP_PROVIDER=off`，可试玩和导出，填好生成服务后可上传照片。容器安装 Ubuntu 发行版提供的 Blender。容器中默认走兼容 API，本机登录过的 Codex 或 Claude Code 可使用上述原生启动方式。Docker Desktop 中的服务可通过 `host.docker.internal` 访问宿主机上的视觉模型。
 
 ### 团队部署
 
-默认服务绑定本机。对外部署用 HTTPS 反向代理，将 `--origin` 设成实际访问地址，设置 `WORKSHOP_ACCESS_TOKEN`。将该口令交给团队成员，他们可以从「照片开工」页登录。部署以个人或共享工作室为单位，成员共用生成项目列表。每位玩家的搭建进度保存在各自浏览器。保持一个服务实例管理同一数据目录。通过 `--data-dir` 指定可持久化的位置。
+默认服务绑定本机。对外部署用 HTTPS 反向代理，将 `--origin` 或 `WORKSHOP_ORIGIN` 设成实际访问地址，设置 `WORKSHOP_ACCESS_TOKEN`。反向代理保留原始 Host，并转发到本机服务。将该口令交给团队成员，他们可以从「照片开工」页登录。部署以个人或共享工作室为单位，成员共用生成项目列表。每位玩家的搭建进度保存在各自浏览器。保持一个服务实例管理同一数据目录。通过 `--data-dir` 指定可持久化的位置。
 
 ## 用自己的模型
 

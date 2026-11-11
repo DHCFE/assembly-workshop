@@ -12,10 +12,11 @@ services:
       WORKSHOP_AI_MODEL: ${WORKSHOP_AI_MODEL:-}
       WORKSHOP_AI_API_KEY: ${WORKSHOP_AI_API_KEY:-}
       WORKSHOP_AI_JSON_MODE: ${WORKSHOP_AI_JSON_MODE:-schema}
+      WORKSHOP_ORIGIN: ${WORKSHOP_ORIGIN:-}
       WORKSHOP_ACCESS_TOKEN: ${WORKSHOP_ACCESS_TOKEN:-}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/api/config', timeout=3).read()"]
+      test: ["CMD", "python3", "-c", "import os, urllib.request, urllib.parse; host=urllib.parse.urlsplit(os.getenv('WORKSHOP_ORIGIN') or 'http://127.0.0.1:8765').netloc; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8765/api/config', headers={'Host':host}), timeout=3).read()"]
       interval: 30s
       timeout: 4s
       start_period: 10s

@@ -42,7 +42,9 @@ def cli_recipe(provider, folder, image, prompt):
     result = subprocess.run(command, cwd=folder, capture_output=True, text=True,
                             encoding='utf-8', errors='replace', timeout=240)
     if result.returncode:
-        raise RuntimeError(f'{provider} 未能生成场景，请检查它的登录状态和可用额度。')
+        if 'OAuth access token has expired' in result.stdout or 'OAuth access token has expired' in result.stderr:
+            raise RuntimeError('Claude Code 的登录已过期，请重新登录后继续。')
+        raise RuntimeError(f'{provider} 未能生成配方，请检查命令行登录和模型设置。')
     if provider == 'codex':
         return read_json(draft)
     response = json.loads(result.stdout)

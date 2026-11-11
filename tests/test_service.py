@@ -120,7 +120,9 @@ class ServiceTest(unittest.TestCase):
                 time.sleep(.25)
             self.fail(f'Did not reach {status}: {state}')
         stopped=wait('stopped')
-        self.assertEqual(stopped['revision'],1,stopped)
+        error_file=Path(self.temp.name)/'projects'/job['id']/'error.log'
+        detail=error_file.read_text(encoding='utf-8') if error_file.exists() else str(stopped)
+        self.assertEqual(stopped.get('revision'),1,detail)
         first=self.get(project+'r1/index.json')['chapters']
         self.get(endpoint+'/retry',b'')
         self.assertEqual(wait('complete')['revision'],2)
