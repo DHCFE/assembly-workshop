@@ -12,10 +12,8 @@ COPY LICENSE .
 RUN npm run build
 
 FROM ubuntu:26.04
-COPY --from=python:3.12-slim-bookworm /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-RUN sed -i "s|http://|https://|g" /etc/apt/sources.list.d/ubuntu.sources \
-    && apt-get -o Acquire::https::Timeout=20 -o Acquire::Retries=1 update \
-    && apt-get -o Acquire::https::Timeout=20 -o Acquire::Retries=1 install -y --no-install-recommends blender python3 ca-certificates \
+RUN apt-get -o Acquire::http::Timeout=25 -o Acquire::Retries=2 update \
+    && apt-get -o Acquire::http::Timeout=25 -o Acquire::Retries=2 install -y --no-install-recommends blender python3 ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 10001 workshop \
     && mkdir /data \

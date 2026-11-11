@@ -37,7 +37,7 @@ def cli_recipe(provider, folder, image, prompt):
                    '-o', str(draft), '--image', str(image), '--', prompt]
     else:
         command = [program, '-p', '--output-format', 'json', '--json-schema', json.dumps(SCHEMA),
-                   '--allowedTools', 'Read', '--no-session-persistence', '--max-turns', '5',
+                   '--tools', 'Read', '--allowedTools', 'Read', '--no-session-persistence', '--max-turns', '5',
                    f'先读取工作目录中的图片文件 {image.name}，然后完成这个任务。\n{prompt}']
     result = subprocess.run(command, cwd=folder, capture_output=True, text=True,
                             encoding='utf-8', errors='replace', timeout=240)
