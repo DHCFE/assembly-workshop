@@ -13,7 +13,7 @@ RUN npm run build
 
 FROM ubuntu:26.04
 RUN apt-get -o Acquire::http::Timeout=25 -o Acquire::Retries=2 update \
-    && apt-get -o Acquire::http::Timeout=25 -o Acquire::Retries=2 install -y --no-install-recommends blender python3 ca-certificates \
+    && apt-get -o Acquire::http::Timeout=25 -o Acquire::Retries=2 install -y --no-install-recommends blender python3 python3-numpy ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 10001 workshop \
     && mkdir /data \

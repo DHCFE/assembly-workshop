@@ -133,6 +133,13 @@ class ServiceTest(unittest.TestCase):
         with self.fetch(project+'export',json.dumps(checkpoint).encode()) as result:
             self.assertGreater(len(result.read()),10_000)
 
+    @unittest.skipUnless(os.getenv('WORKSHOP_TEST_BLENDER')=='1' and blender_path(),'requires Blender')
+    def test_bundled_project_exports_with_system_blender(self):
+        checkpoint={'format':'assembly-workshop/1','project':'wood-village',
+                    'progress':{'active':'1','values':{'1':1}}}
+        with self.fetch('/play/wood-village/export',json.dumps(checkpoint).encode()) as result:
+            self.assertGreater(len(result.read()),100_000)
+
     def test_invalid_progress_is_rejected(self):
         recipe={'chapters':[{'steps':[{'id':'1','parts':['beam']}]}]}
         with self.assertRaises(ValueError):
