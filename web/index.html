@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#d2b591">
+<title>模型工作台</title>
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4e7ce;--paper-edge:#ae8b63;--ink:#4b4632;--olive:#5f6240;--olive-light:#747653;
+  --cream:#fff0c0;--wood:#aa7950;--shadow:rgb(60 37 19/.32);
+  --sans:"Instrument Sans","PingFang SC",system-ui,sans-serif;
+  --serif:"Noto Serif SC","Songti SC",serif;--ease:cubic-bezier(.21,.75,.28,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#cbb08e;color:var(--ink);font-family:var(--sans)}
+[hidden]{display:none!important}
+button,a{color:inherit;font:inherit;-webkit-tap-highlight-color:transparent}
+button{cursor:pointer}
+button:disabled{cursor:default;opacity:.55}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid #414729;outline-offset:4px}
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.symbols{position:absolute;width:0;height:0;overflow:hidden}
+.icon{width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#viewport{position:relative;width:100%;height:100dvh;isolation:isolate;overflow:hidden;background:#d7bd98}
+#viewport>canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#viewport>canvas:active{cursor:grabbing}
+#viewport::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;box-shadow:inset 0 0 100px rgb(75 48 26/.11)}
+.hud{position:absolute;inset:0;z-index:5;pointer-events:none}
+.hud button{pointer-events:auto}
+.plaque,.tile,.primary{
+  border:1px solid var(--paper-edge);color:var(--olive);background:linear-gradient(165deg,#fff4dc 0%,#f2dfbd 58%,#e6cda6 100%);
+  box-shadow:inset 0 1px 1px #fff9e8,inset 0 -2px 2px rgb(148 106 57/.2),0 2px 0 #9e7851,0 5px 11px var(--shadow);
+  transition:transform .16s var(--ease),filter .16s,background .16s;
+}
+.plaque:hover,.tile:hover:not(:disabled),.primary:hover:not(:disabled){filter:brightness(1.07);transform:translateY(-1px)}
+.plaque:active,.tile:active:not(:disabled),.primary:active:not(:disabled){transform:translateY(2px)}
+.plaque{display:flex;align-items:center;gap:16px;min-height:54px;padding:0 16px;border-radius:9px;min-width:141px}
+.plaque .icon{width:37px;height:28px;stroke-width:1.35}
+.hud-left,.hud-right,.camera,.finish{position:absolute;display:flex;gap:9px}
+.hud-left{top:max(18px,env(safe-area-inset-top));left:max(20px,env(safe-area-inset-left))}
+.hud-right{top:max(18px,env(safe-area-inset-top));right:max(20px,env(safe-area-inset-right))}
+.camera{bottom:max(22px,env(safe-area-inset-bottom));left:max(20px,env(safe-area-inset-left))}
+.finish{bottom:max(22px,env(safe-area-inset-bottom));right:max(20px,env(safe-area-inset-right))}
+.tile,.primary{width:43px;height:43px;display:grid;place-items:center;border-radius:9px;padding:0}
+.primary{width:64px;color:#fff2cd;border-color:#777550;background:linear-gradient(155deg,#7b7c54,#585d3b);box-shadow:inset 0 1px 2px #b9b58c,0 2px 0 #49452b,0 5px 11px var(--shadow)}
+.primary[aria-pressed=true],.tile[aria-pressed=true]#orbit{box-shadow:inset 0 2px 4px rgb(59 56 32/.34),0 1px 1px var(--shadow);transform:translateY(1px)}
+#sound[aria-pressed=false] .sound-on,#sound[aria-pressed=true] .sound-off{display:none}
+#record[data-recording]{color:#9a412a}
+#record[data-recording] .record-core{fill:currentColor;animation:breathe 1.35s ease-in-out infinite}
+#save[aria-busy]{cursor:progress;animation:breathe 1.15s ease-in-out infinite}
+#chapterDots{display:flex;align-items:center;gap:8px;min-height:20px;position:relative;color:#706445}
+#chapterDots::before{content:"";position:absolute;left:4px;right:4px;top:calc(50% - .5px);height:1px;background:#9d8865}
+#chapterDots i{position:relative;width:8px;height:8px;border-radius:50%;border:1px solid #9d8865;background:#ecd8b2}
+#chapterDots i[data-done]{background:#6a6d46;border-color:#6a6d46}
+#chapterDots i[data-active]{background:#f9e9c3;border:2px solid #6a6d46;outline:1px solid #9a8e66;outline-offset:2px}
+#score{position:absolute;z-index:9;top:84px;left:20px;width:min(315px,calc(100% - 40px));max-height:calc(100dvh - 112px);display:none;flex-direction:column;overflow:hidden;border:1px solid #bb9b70;border-radius:12px;background:#f5e8d1;box-shadow:0 12px 40px rgb(61 42 22/.3)}
+#score[data-open]{display:flex}
+.score-head{display:flex;align-items:center;gap:14px;min-height:48px;padding:5px 12px 5px 17px;border-bottom:1px solid #d7bfa1}
+.score-head strong{font:600 16px var(--serif)}
+#areaTally{margin-left:auto;color:#6d654c;font-size:12px;font-variant-numeric:tabular-nums}
+.ghost-button{display:grid;place-items:center;width:36px;height:36px;background:transparent;border:0;border-radius:6px;padding:0}
+.ghost-button:hover{background:#e9d8ba}
+#levelPanel{position:absolute;z-index:11;left:50%;top:50%;translate:-50% -50%;width:min(470px,calc(100% - 32px));padding:22px;border:1px solid #b79569;border-radius:13px;background:#f5e8d0;box-shadow:0 12px 60px #4f382b66;color:#4d4935}
+.level-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:19px}
+.level-head h2{font:600 23px var(--serif);margin:0}
+.level-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.level-option{display:grid;justify-items:center;gap:8px;padding:15px 5px;border:1px solid #c8af89;border-radius:8px;background:#edddbd;color:inherit}
+.level-option:hover{background:#f9edcf}.level-option[aria-pressed=true]{border-color:#657046;box-shadow:inset 0 0 0 1px #657046;background:#e0dfbc}
+.level-option strong{font-size:15px;font-weight:600}.level-count{font:500 32px var(--sans);font-variant-numeric:tabular-nums}.level-unit,.level-ratio{font-size:12px;color:#756a4d}
+#levelNote{margin:16px 0 0;color:#70664d;font-size:12px;line-height:1.5;text-align:center}
+#areas{list-style:none;overflow:auto;overscroll-behavior:contain;padding:2px 14px 11px;margin:0}
+.area{border-bottom:1px solid #e3ceb0;padding:8px 4px 10px}
+.area:last-child{border-bottom:0}
+.area-head{display:grid;grid-template-columns:22px 1fr auto;align-items:baseline;gap:7px;width:100%;text-align:left;background:none;border:0;padding:3px 0;color:#4e4838;font-size:13px}
+.area-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.area[data-current] .area-name{font-weight:700;color:#4d552f}
+.area-num,.area-count{font-variant-numeric:tabular-nums;color:#73694f;font-size:11px}
+.ticks{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0 0 29px}
+.tick{width:9px;height:16px;border:0;border-radius:1px;background:linear-gradient(to top,#6c7049 calc(var(--p,0)*100%),#dbcaad 0);padding:0}
+.tick[data-done]{background:#6c7049}.tick[data-current]{outline:1px solid #555f3a;outline-offset:2px}
+#guide{position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none;overflow:visible;filter:drop-shadow(0 1px 1px rgb(49 37 22/.68))}
+#trail{fill:none;stroke:#f1c17b;stroke-opacity:.78;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+#path{fill:none;stroke:#fff1c7;stroke-width:2;stroke-dasharray:3 7;stroke-linecap:round;stroke-linejoin:round;opacity:.92}
+#socket,#pivot,.station{fill:#74644655;stroke:#fff0bd;stroke-width:1.5}
+#socket{stroke-dasharray:3 3}
+#guide[data-near] #socket{r:12px;stroke-dasharray:none}
+#guide[data-snap] #socket{r:14px;fill:#ffe5a7;stroke:#fff5d7}
+#guide[data-tool=saw] #trail,#guide[data-tool=stamp] #trail,#guide[data-tool=saw] #socket,#guide[data-tool=stamp] #socket{display:none}
+.station[data-done]{fill:#646e48;stroke:#f4e4b7}
+.station[data-target]{r:11px;stroke:#fff4cf;stroke-width:2.5}
+#guide[data-tool=hold] #trail{stroke:#b1e1d0;stroke-width:4}
+#knob{position:absolute;left:0;top:0;z-index:4;width:64px;height:64px;margin:-32px 0 0 -32px;touch-action:none;cursor:grab;will-change:transform;outline:none}
+#knob[data-tool=drag]{width:44px;height:44px;margin:-22px 0 0 -22px}
+#knob[data-tool=hold],#knob[data-tool=stamp]{cursor:pointer}
+.tool-mark{position:absolute;left:50%;top:50%;translate:-50% -50%;display:block;width:20px;height:20px;fill:none;stroke:#fff2cd;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px #392b16);pointer-events:none}
+#knob[data-tool=drag] .tool-mark{opacity:.69}
+#knob:focus-visible .tool-mark,#knob:hover .tool-mark{opacity:1;stroke:#fff9e4;stroke-width:2}
+#viewport[data-dragging] #knob,#viewport[data-dragging] canvas{cursor:grabbing}
+#knob[data-snap] .tool-mark{stroke:#fffef5}
+#knob[data-busy]{opacity:.75}
+#knob.enter .tool-mark{animation:enter .24s var(--ease)}
+#viewport[data-direct] #knob[data-tool=drag] .tool-mark,#viewport[data-direct] #guide[data-tool=drag]{opacity:0}
+#trayPieces{position:absolute;inset:0;z-index:3;pointer-events:none}
+.tray-piece{position:absolute;padding:0;border:0;background:transparent;touch-action:none;cursor:grab;pointer-events:auto}
+.tray-piece:focus-visible{outline:none}
+.tray-piece:focus-visible::after{content:"";position:absolute;bottom:-5px;left:calc(50% - 3px);width:6px;height:6px;border-radius:50%;background:#fff2c7;box-shadow:0 1px 2px #3d321d}
+#viewport[data-picking-part] .tray-piece{cursor:grabbing}
+#placementTarget{position:absolute;pointer-events:none}
+#stamp{position:absolute;z-index:4;pointer-events:none;opacity:0;translate:-50% -50%;color:#fff1c9;filter:drop-shadow(0 1px 2px #392b16)}
+#stamp .icon{width:20px;height:20px;stroke-width:2.4}
+#stamp.go{animation:stamp .78s var(--ease)}
+#cue,#banner{position:absolute;z-index:6;display:grid;place-items:center;left:50%;translate:-50% 0;pointer-events:none;color:#5d6040;background:#f6e5c6;border:1px solid #b89165;border-radius:9px;box-shadow:0 4px 12px var(--shadow)}
+#cue{bottom:79px;width:38px;height:38px}
+#cue[data-kind=error]{color:#9c4d35}
+#cue.show{animation:enter .23s var(--ease)}
+#banner{top:20px;width:44px;height:42px}
+#banner.show{animation:banner 2.2s var(--ease)}
+#intro,#finale{position:absolute;z-index:6;left:50%;bottom:12%;translate:-50% 0;display:flex;align-items:center;gap:10px}
+#start{width:71px;height:54px}
+#start .icon{width:27px;height:27px}
+#movie{position:absolute;z-index:7;right:20px;bottom:78px;width:min(290px,calc(100% - 40px));padding:8px;border:1px solid #b79569;border-radius:9px;background:#f3e5cb;box-shadow:0 5px 20px var(--shadow)}
+#player{width:100%;display:block;border-radius:4px;background:#302d22}
+.movie-row{display:flex;justify-content:flex-end;gap:3px;margin-top:5px}
+#download{text-decoration:none}
+#loading{position:absolute;inset:0;z-index:10;display:grid;place-content:center;justify-items:center;gap:14px;color:#65593f;background:#efddbd;transition:opacity .35s}
+#loading.out{opacity:0;pointer-events:none}
+#loading .icon{width:44px;height:38px;stroke-width:1.2}
+.track{width:114px;height:2px;background:#d3b98e}
+#loadingFill{display:block;width:100%;height:100%;background:#686b45;transform:scaleX(0);transform-origin:left}
+#loading[data-error] #loadingText{position:static!important;width:auto;height:auto;margin:0;clip-path:none;white-space:normal;max-width:min(340px,80vw)}
+@keyframes enter{from{opacity:0;scale:.85}to{opacity:1;scale:1}}
+@keyframes stamp{0%{opacity:0;scale:.8}18%,58%{opacity:1;scale:1}100%{opacity:0;translate:-50% calc(-50% - 14px)}}
+@keyframes banner{0%,100%{opacity:0;transform:translateY(-6px)}12%,85%{opacity:1;transform:none}}
+@keyframes breathe{50%{opacity:.5}}
+@media(max-width:520px){
+  .hud-left{top:12px;left:12px}.hud-right{top:12px;right:12px;gap:6px}.camera{bottom:16px;left:12px;gap:7px}.finish{bottom:16px;right:12px}
+  .plaque{min-height:44px;gap:9px;padding:0 11px;min-width:112px}.plaque .icon{width:27px;height:22px}
+  #chapterDots{gap:6px}#chapterDots i{width:6px;height:6px}
+  .tile,.primary{width:38px;height:38px;border-radius:8px}.primary{width:54px}.icon{width:19px;height:19px}
+  #score{top:67px;left:12px;width:min(300px,calc(100% - 24px));max-height:calc(100dvh - 128px)}
+  .tick{width:12px;height:22px}#cue{bottom:67px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}#stamp.go{opacity:1}}
+
+#savePanel{width:min(400px,calc(100% - 32px));padding:25px;border:1px solid #b79569;border-radius:12px;background:#f5e8d0;color:#4d4935;box-shadow:0 14px 54px #30231766}
+#savePanel::backdrop{background:#25221966}#savePanel h2{margin:0 0 18px;font-size:22px}#savePanel .save-actions{display:grid;gap:8px}#savePanel button,#savePanel label{font:inherit;padding:10px 13px;border:1px solid #c8af89;background:#edddbd;border-radius:7px;text-align:left;color:inherit;cursor:pointer}#saveStatus:empty{display:none}#saveStatus{font-size:14px;margin:12px 0 0}#savePanel .save-close{position:absolute;right:12px;top:12px;padding:4px 10px}
+#loadingRetry{padding:8px 14px;border-radius:6px;background:#f5e8d0;color:#4d4935;border:1px solid #b79569}
+#phaseStatus{position:absolute;z-index:5;left:20px;top:82px;padding:6px 10px;background:#f5e8d0;color:#4d4935;font-size:12px;border-radius:4px;text-decoration:none}#sceneHome{display:grid;place-items:center;text-decoration:none;color:inherit}
+</style>
+</head>
+<body>
+<svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="i-arch" viewBox="0 0 30 24"><path d="M2 20V4h26v16h-5v-4a3.5 3.5 0 0 0-7 0v4h-2v-4a3.5 3.5 0 0 0-7 0v4H2ZM2 8h26"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM16 9c2 1.5 2 4.5 0 6m2-9c4 3 4 9 0 12"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zm12 0 5 6m0-6-5 6"/></symbol>
+  <symbol id="i-record" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><circle class="record-core" cx="12" cy="12" r="3.5"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h12l3 3v13H4V4zm3 0v6h8V4m-8 16v-6h8v6"/></symbol>
+  <symbol id="i-frame" viewBox="0 0 24 24"><path d="M9 4H4v5m11-5h5v5m0 6v5h-5m-6 0H4v-5"/></symbol>
+  <symbol id="i-focus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 3v4m0 10v4M3 12h4m10 0h4"/></symbol>
+  <symbol id="i-orbit" viewBox="0 0 24 24"><ellipse cx="12" cy="13" rx="9" ry="4"/><path d="M12 4v9M9 6l3-2 3 2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 4 12 8-12 8z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 17v3h14v-3"/></symbol>
+  <symbol id="i-turn" viewBox="0 0 24 24"><path d="M7 9a6 6 0 1 1 1 8M7 4v5h5"/></symbol>
+  <symbol id="i-level" viewBox="0 0 24 24"><path d="M5 18v-4m7 4V9m7 9V4"/><circle cx="5" cy="11" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="19" cy="19" r="2"/></symbol>
+</svg>
+<aside id="score" aria-label="施工区域">
+  <div class="score-head"><strong>施工区域</strong><span id="areaTally"></span><button id="scoreClose" class="ghost-button" type="button" aria-label="关闭施工区域"><svg class="icon"><use href="#i-close"/></svg></button></div>
+  <ol id="areas"></ol>
+</aside>
+<main id="viewport" aria-label="模型台">
+  <div id="trayPieces" role="group" aria-label="当前阶段零件盒" hidden></div>
+  <span id="trayLabel" class="sr" hidden></span>
+  <div id="placementTarget" aria-hidden="true" hidden></div>
+  <svg id="guide" aria-hidden="true" hidden><polyline id="trail"/><polyline id="path"/><circle id="pivot" r="5" hidden/><circle id="socket" r="9"/><g id="stations" hidden><circle class="station" r="8"/><circle class="station" r="8"/><circle class="station" r="8"/><circle class="station" r="8"/></g></svg>
+  <span id="stamp" aria-hidden="true"><svg class="icon"><use href="#i-check"/></svg></span>
+  <div id="knob" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+    <svg class="tool-mark" viewBox="0 0 16 16" aria-hidden="true"><path id="toolIcon" d="M5 5h6M5 8h6M5 11h6"/></svg>
+  </div>
+  <div class="sr" aria-live="polite"><p id="title"></p><p id="areaName"></p><h1 id="stepTitle"></h1><p id="release" role="status" hidden></p><p id="caption"></p><p id="captionSub"></p><p id="ticker" role="status"></p></div>
+  <div class="hud">
+    <div class="hud-left"><button id="scoreOpen" class="plaque" type="button" aria-controls="score" aria-expanded="false" aria-label="施工区域"><svg class="icon" aria-hidden="true"><use href="#i-arch"/></svg><span id="chapterDots" aria-hidden="true"></span><span id="scoreOpenText" class="sr"></span></button>
+    <div id="tally" class="sr" role="progressbar" aria-label="已装好的步骤" aria-valuemin="0" aria-valuenow="0" aria-valuemax="1"><span id="count">0</span><span id="countTotal"></span></div></div>
+    <div class="hud-right">
+      <button id="levelOpen" class="tile" type="button" aria-label="选择搭建难度"><svg class="icon" aria-hidden="true"><use href="#i-level"/></svg></button>
+      <button id="sound" class="tile" type="button" aria-pressed="true" aria-label="声音"><svg class="icon sound-on" aria-hidden="true"><use href="#i-sound"/></svg><svg class="icon sound-off" aria-hidden="true"><use href="#i-mute"/></svg></button>
+      <button id="record" class="tile" type="button" disabled aria-label="录像"><svg class="icon" aria-hidden="true"><use href="#i-record"/></svg><span id="recordText" class="sr">录像</span></button>
+      <button id="save" class="tile" type="button" disabled aria-label="搭建存档"><svg class="icon" aria-hidden="true"><use href="#i-save"/></svg></button>
+    </div>
+    <div class="camera" role="toolbar" aria-label="镜头"><a id="sceneHome" class="tile" href="../../" aria-label="返回场景库"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 11l7-6 7 6v8h-5v-5h-4v5H5z"/></svg></a><button id="fullscreen" class="tile" type="button" aria-label="全屏"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 10V5h5m4 0h5v5m0 4v5h-5m-4 0H5v-5"/></svg></button>
+      <button id="whole" class="tile" type="button" aria-label="看全景"><svg class="icon" aria-hidden="true"><use href="#i-frame"/></svg></button>
+      <button id="focus" class="tile" type="button" aria-label="对准当前构件"><svg class="icon" aria-hidden="true"><use href="#i-focus"/></svg></button>
+      <button id="orbit" class="tile" type="button" aria-pressed="false" aria-label="自动环绕"><svg class="icon" aria-hidden="true"><use href="#i-orbit"/></svg></button>
+    </div>
+    <div class="finish"><button id="preview" class="primary" type="button" aria-pressed="false" aria-label="预览成品"><svg class="icon" aria-hidden="true"><use id="previewIcon" href="#i-check"/></svg><span id="previewText" class="sr"></span></button></div>
+  </div>
+  <a id="phaseStatus" href="../../create/" hidden>后续区域制作中</a>
+  <div id="cue" hidden aria-hidden="true"><svg class="icon"><use id="cueIcon" href="#i-check"/></svg></div>
+  <section id="levelPanel" role="dialog" aria-modal="true" aria-labelledby="levelHeading" hidden>
+    <div class="level-head"><h2 id="levelHeading">搭建节奏</h2><button id="levelClose" class="ghost-button" type="button" aria-label="关闭难度选择"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <div class="level-options">
+      <button id="leveleasy" class="level-option" type="button"><strong>Easy</strong><span class="level-count"></span><span class="level-unit">steps</span><span class="level-ratio"></span></button>
+      <button id="levelmedium" class="level-option" type="button"><strong>Medium</strong><span class="level-count"></span><span class="level-unit">steps</span><span class="level-ratio"></span></button>
+      <button id="levelhard" class="level-option" type="button"><strong>Hard</strong><span class="level-count"></span><span class="level-unit">steps</span><span class="level-ratio"></span></button>
+    </div><p id="levelNote"></p>
+  </section>
+  <div id="banner" hidden><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span id="bannerKicker" class="sr"></span><span id="bannerTitle" class="sr"></span><span id="bannerSub" class="sr"></span></div>
+  <div id="intro" hidden><p id="introText" class="sr"></p><button id="start" class="primary" type="button" aria-label="开始搭建" disabled><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button></div>
+  <div id="finale" hidden role="dialog" aria-label="搭建完成"><p id="finaleText" class="sr"></p>
+    <button id="finaleSave" class="primary" type="button" aria-label="存档"><svg class="icon" aria-hidden="true"><use href="#i-save"/></svg></button>
+    <button id="finaleTour" class="tile" type="button" aria-label="录制环绕"><svg class="icon" aria-hidden="true"><use href="#i-orbit"/></svg></button>
+    <button id="finaleClose" class="tile" type="button" aria-label="关闭"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+  </div>
+  <div id="movie" hidden><video id="player" controls playsinline></video><div class="movie-row"><a id="download" class="ghost-button" aria-label="下载录像"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg></a><button id="movieClose" class="ghost-button" type="button" aria-label="收起录像"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div></div>
+  <dialog id="savePanel" aria-labelledby="saveHeading"><h2 id="saveHeading">搭建存档</h2><button id="saveClose" class="save-close" type="button" aria-label="关闭">×</button><div class="save-actions"><button id="downloadCheckpoint" type="button">下载进度</button><label for="importCheckpoint">导入进度<input class="sr" id="importCheckpoint" type="file" accept=".json,application/json"></label><button id="exportBlend" type="button" hidden>导出 Blender 工程</button></div><p id="saveStatus" role="status"></p></dialog>
+  <div id="loading"><svg class="icon" aria-hidden="true"><use href="#i-arch"/></svg><span id="loadingText" class="sr" role="status">正在载入模型</span><div class="track"><span id="loadingFill"></span></div><button id="loadingRetry" type="button" hidden>重试</button></div>
+</main>
+<script type="module" src="../../assets/workshop.js"></script>
+</body>
+</html>

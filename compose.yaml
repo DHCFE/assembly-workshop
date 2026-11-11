@@ -1,0 +1,23 @@
+services:
+  workshop:
+    build: .
+    init: true
+    ports:
+      - "127.0.0.1:8765:8765"
+    volumes:
+      - workshop-data:/data
+    environment:
+      WORKSHOP_PROVIDER: ${WORKSHOP_PROVIDER:-off}
+      WORKSHOP_AI_BASE_URL: ${WORKSHOP_AI_BASE_URL:-}
+      WORKSHOP_AI_MODEL: ${WORKSHOP_AI_MODEL:-}
+      WORKSHOP_AI_API_KEY: ${WORKSHOP_AI_API_KEY:-}
+      WORKSHOP_AI_JSON_MODE: ${WORKSHOP_AI_JSON_MODE:-schema}
+      WORKSHOP_ACCESS_TOKEN: ${WORKSHOP_ACCESS_TOKEN:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/api/config', timeout=3).read()"]
+      interval: 30s
+      timeout: 4s
+      start_period: 10s
+volumes:
+  workshop-data:

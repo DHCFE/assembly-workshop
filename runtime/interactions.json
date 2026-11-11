@@ -1,0 +1,22 @@
+{
+  "lower": ["drag"],
+  "raise": ["drag"],
+  "slide": ["drag"],
+  "align": ["stamp", "drag"],
+  "insert": ["drag"],
+  "seat": ["drag"],
+  "bridge": ["drag"],
+  "place": ["drag"],
+  "turn": ["crank", "drag"],
+  "hinge": ["crank", "drag"],
+  "spread": ["drag", "trace"],
+  "expand": ["drag"],
+  "stretch": ["drag"],
+  "sweep": ["trace", "stamp", "drag"],
+  "pour": ["hold", "drag"],
+  "flow": ["hold", "drag"],
+  "tread": ["stamp", "trace"],
+  "plant": ["stamp", "hold"],
+  "bend": ["drag"],
+  "cut": ["saw", "trace"]
+}

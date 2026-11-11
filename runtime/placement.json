@@ -1,0 +1,5 @@
+{
+  "maxParts": 4,
+  "seatedValue": 0.000001,
+  "trayOperations": ["lower", "raise", "slide", "align", "insert", "seat", "bridge", "place", "turn", "hinge", "spread", "expand", "stretch", "bend"]
+}

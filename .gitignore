@@ -1,0 +1,14 @@
+.DS_Store
+.env
+.env.local
+node_modules/
+dist/
+data/
+__pycache__/
+*.pyc
+*.blend1
+*.assembly.json
+*.mp4
+*.webm
+/test-results/
+/playwright-report/

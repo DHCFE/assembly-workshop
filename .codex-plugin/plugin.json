@@ -1,0 +1,7 @@
+{
+  "name": "assembly-workshop",
+  "version": "1.0.0",
+  "description": "Open-source browser workbench for participatory Blender assembly.",
+  "skills": "./skills/",
+  "interface": {"displayName": "3D 搭建工作台", "shortDescription": "从零件盒亲手装配 Blender 场景。", "category": "Creativity"}
+}

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照片开工 · 3D 搭建工作台</title><link rel="stylesheet" href="../home.css">
+<style>
+[hidden]{display:none!important}.create{max-width:980px;margin:auto;padding:44px clamp(18px,5vw,56px)}.create h1{font:600 clamp(31px,6vw,49px)/1.15 "Songti SC",STSong,serif;margin:0 0 17px}.create h2{font-size:19px;margin:32px 0 12px}.create form,.notice{border-top:1px solid var(--line);padding:20px 0}.create button{font:inherit;cursor:pointer;background:#46543d;color:#fff8e6;border:0;border-radius:4px;padding:10px 15px}.create button:disabled{opacity:.55}.create input{font:inherit;max-width:100%}.create input[type=password]{border:1px solid #afa58f;border-radius:4px;background:#fffaf0;padding:9px;color:var(--ink)}.upload{display:grid;gap:14px;max-width:580px}.upload img{width:min(410px,100%);max-height:280px;object-fit:contain;object-position:left;background:#ece1ce;border-radius:5px}.create p{color:var(--muted)}#status[data-error]{color:#8a3a2a}.jobs{padding:0;list-style:none}.jobs li{border-top:1px solid var(--line);padding:13px 0;display:flex;gap:12px;flex-wrap:wrap;align-items:center}.jobs li strong{min-width:10em}.jobs a,.notice a{color:var(--olive);text-decoration:underline;text-underline-offset:4px}.jobs button{padding:5px 9px;font-size:14px}
+</style>
+</head>
+<body>
+<header><a class="brand" href="../">3D 搭建工作台</a><nav><a href="../#buildings">场景库</a><a href="https://github.com/DHCFE/assembly-workshop">GitHub</a></nav></header>
+<main class="create">
+<h1>用照片开工</h1>
+<p>上传一张建筑照片。地台就绪后先搭，主体和屋面会接到同一个工作台。</p>
+<form id="login" hidden><label>访问口令 <input id="token" type="password" required autocomplete="current-password"></label> <button>进入</button></form>
+<form id="photo" class="upload" hidden>
+  <label for="reference">选择参考图</label><input id="reference" type="file" accept="image/png,image/jpeg,image/webp" required>
+  <img id="preview" alt="已选择的建筑参考图" hidden>
+  <div><button id="start" type="submit">开工</button></div>
+</form>
+<p id="status" role="status" aria-live="polite">正在连接工作台…</p>
+<div id="setup" class="notice" hidden><a href="https://github.com/DHCFE/assembly-workshop#self-host">启动自己的生成服务</a> · <a href="../#buildings">先试玩内置建筑</a></div>
+<section id="projects" hidden><h2>我的项目</h2><ul id="jobs" class="jobs"></ul></section>
+</main>
+<script type="module" src="../create.js"></script>
+</body></html>
